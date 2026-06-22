@@ -1,5 +1,7 @@
 \documentclass[twocolumn]{article}
 
+\usepackage[spanish]{babel}
+\usepackage{authblk}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=1.25in]{geometry}
 \usepackage{authblk}
@@ -9,26 +11,39 @@
 \usepackage{subcaption}
 \usepackage{amsmath}
 \usepackage{booktabs}
-\usepackage{hyperref}
-
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{lipsum}
+\usepackage{pgfplots}
 \setlength{\columnsep}{24pt}
 \usepackage[switch]{lineno}
 \setlength\linenumbersep{8pt}
 
-\usepackage[
-  style=nejm,
-  citestyle=numeric-comp,
-  sorting=none
-]{biblatex}
+\usepackage[colorlinks=true, citecolor=blue, linkcolor=blue, urlcolor=blue]{hyperref}
 
-\title{Análisis de la huella de carbono en fine-tuning de modelos de lenguaje: implicaciones energéticas y ambientales}
-\author[1]{Daniel Armas Ramírez}
-\author[2]{Ian Josué López Sánchez}
-\affil[1]{Escuela Superior de Cómputo, Instituto Politécnico Nacional, Ciudad de México, México.}
-\affil[2]{Escuela Superior de Cómputo, Instituto Politécnico Nacional, Ciudad de México, México.}
-\date{Junio de 2026}
+\geometry{
+    letterpaper,
+    left=15mm,
+    right=15mm,
+    top=20mm,
+    bottom=20mm
+}
+
+\usepackage[
+style=ieee,
+backend=biber,
+sorting=none
+]{biblatex}
+\addbibresource{references.bib}
+
+\title{\textbf{Análisis de la huella de carbono en fine-tuning de modelos de lenguaje: implicaciones energéticas y ambientales}}
+\author{Daniel Armas Ramírez, Ian Josué López Sánchez, Dr. Benjamín Cruz Torres, Dr. Amilcar Meneses Viveros}
+\affil{Escuela Superior de Cómputo, Instituto Politécnico Nacional, Ciudad de México, México. \\
+Tel. 57-29-6000 ext. 52000 y 52021. E-mail: \texttt{darmasr2100@alumno.ipn.mx}, \texttt{ilopezs1801@alumno.ipn.mx}, \texttt{bcruzt@ipn.mx}, \texttt{amilcar.meneses@cinvestav.mx}}
 
 \setstretch{1.15}
+
+\renewcommand\Authands{ y }
 
 \begin{document}
 \twocolumn[
@@ -51,12 +66,129 @@ Por lo anterior, este estudio evalúa la huella de carbono del fine-tuning de LL
 
 \section{Metodología}
 
-Se adoptó la metodología SCI de la Green Software Foundation, que calcula las emisiones de un sistema de software como $SCI = ((E \times I) + M)$ por $R$, donde $E$ es la energía consumida en MWh, $I$ la intensidad de carbono de la red eléctrica, $M$ las emisiones incorporadas del hardware y $R$ la unidad funcional, definida en este trabajo como un experimento completo de fine-tuning. Los componentes monitoreados fueron GPU, CPU y RAM, excluyendo refrigeración e infraestructura de red.
+{Se adoptó la metodología SCI de la Green Software Foundation \cite{greensoftwarefoundation_sci2025}, que calcula las emisiones de un sistema de software como $SCI = ((E \times I) + M)$ por $R$, donde $E$ es la energía consumida en MWh, $I$ la intensidad de carbono de la red eléctrica, $M$ las emisiones incorporadas del hardware y $R$ la unidad funcional, definida en este trabajo como un experimento completo de fine-tuning. Los componentes monitoreados fueron GPU, CPU y RAM, excluyendo refrigeración e infraestructura de red.}
 
-Los experimentos se ejecutaron en dos entornos: un servidor on-premise con AlmaLinux, dos GPUs AMD Instinct MI210, un CPU AMD EPYC 9374F y 384~GB de RAM orquestado con Podman; y estudios en Lightning~AI con GPUs NVIDIA A100 y L4. En ambos se realizó fine-tuning supervisado (SFT) con LoRA y QLoRA sobre modelos de las familias LLaMA~3, Qwen~3, Gemma~3, BioMistral y Ministral, utilizando el conjunto de datos biomédico BioInstruct.
+{Los experimentos se ejecutaron en dos entornos: un servidor on-premise con AlmaLinux, dos GPUs AMD Instinct MI210, un CPU AMD EPYC 9374F y 384~GB de RAM orquestado con Podman; y estudios en Lightning~AI con GPUs NVIDIA A100 y L4. En ambos se realizó fine-tuning supervisado (SFT) con LoRA y QLoRA sobre modelos de las familias LLaMA~3, Qwen~3, Gemma~3, BioMistral y Ministral, utilizando el conjunto de datos biomédico BioInstruct.}
 
-Para la medición energética se emplearon tres herramientas complementarias: CodeCarbon para la estimación agregada por experimento, Zeus para lecturas por fase en GPUs NVIDIA, y Prometheus con Grafana junto al AMD Device Metrics Exporter para la telemetría continua on-premise. Los contadores RAPL proporcionaron el consumo de CPU y RAM, mientras que AMD~SMI y NVML las lecturas de GPU. La calidad de los modelos ajustados se evaluó con BERTScore usando \texttt{dmis-lab/biobert-v1.1} con parámetros fijos de 300 muestras y 256 tokens máximos de generación.
+{Para la medición energética se emplearon tres herramientas complementarias: CodeCarbon para la estimación agregada por experimento, Zeus para lecturas por fase en GPUs NVIDIA, y Prometheus con Grafana junto al AMD Device Metrics Exporter para la telemetría continua on-premise. Los contadores RAPL proporcionaron el consumo de CPU y RAM, mientras que AMD~SMI y NVML las lecturas de GPU. La calidad de los modelos ajustados se evaluó con BERTScore usando \texttt{dmis-lab/biobert-v1.1} con parámetros fijos de 300 muestras y 256 tokens máximos de generación.}
 
-Finalmente, las emisiones operacionales se obtuvieron como $O = E \times I$, con $I$ igual al FESEN 2024 de 0.444~tCO$_2$e/MWh, y las emisiones incorporadas como $M = TE \times TS \times RS$, donde $TE$ son las emisiones del ciclo de vida del hardware, $TS$ la fracción temporal y $RS$ la fracción de recursos asignados. El puntaje SCI se calculó sumando ambos componentes por unidad funcional.
+{Finalmente, las emisiones operacionales se obtuvieron como $O = E \times I$, con $I$ igual al FESEN 2024 de 0.444~tCO$_2$e/MWh, y las emisiones incorporadas como $M = TE \times TS \times RS$, donde $TE$ son las emisiones del ciclo de vida del hardware, $TS$ la fracción temporal y $RS$ la fracción de recursos asignados. El puntaje SCI se calculó sumando ambos componentes por unidad funcional.}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Modelos utilizados.}
+    \label{tab:models}
+    \begin{tabular}{lc}
+    \toprule
+    \textbf{Modelo} & \textbf{Tamaño}\\
+    \midrule
+    LLaMA~3.1 & 8B \\
+    Qwen~3 & 8B \\
+    Qwen~3 & 14B \\
+    Gemma~3 & 12B \\
+    Mistral & 7B \\
+    Ministral~3 & 14B \\
+    gpt-oss & 20B \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+
+\section{Resultados}
+
+{En este trabajo se lograron realizar 12 experimentos de fine-tuning con los 7 modelos propuestos en la tabla \ref{tab:models}, utilizando el conjunto de datos biomédico BioInstruct \cite{Tran2024Bioinstruct}. A cada experimento se le aplicó una técnica de fine-tuning diferente, ya sea entrenar los parámetos más importante con LoRA, o también cuantizar el modelo para reducir su tamaño en la memoria VRAM, con QLoRA; de igual forma se aplicó el algoritmo de flash attention \cite{dao2022flashattentionfastmemoryefficientexact} para mejorar la eficiencia de la memoria de alto ancho de banda. En la tabla \ref{tab:configurations} se muestran las configuraciones utilizadas.}
+
+
+\begin{table}[htbp]
+    \centering
+    \caption{Configuraciones de experimentos.}
+    \label{tab:configurations}
+    \begin{tabular}{lc}
+    \toprule
+    \textbf{Modelo} & \textbf{Configuración}\\
+    \midrule
+    Gemma~3 12B & QLoRA (int 8) + SDPA \\
+    Gemma~3 12B & QLoRA (NF4) + DDP \\
+    Llama~3.1 8B & QLoRA (int 8) + SDPA \\
+    Llama~3.1 8B & LoRA + Flash Attention \\
+    Qwen~3 8B & LoRA + Flash Attention \\
+    Qwen~3 8B & QLoRA (int 8) + Flash Attention \\
+    Qwen~3 14B & LoRA + SDPA \\
+    Qwen~3 14B & LoRA + Flash Attention \\
+    gpt-oss 20B & QLoRA (NF4) + SDPA \\
+    Mistral 7B & QLoRA (NF4) \\
+    Ministral~3 14B & QLoRA (int 8) + flash attention \\
+    Ministral~3 14B & LoRA + flash attention \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+{De cada experimento se obtuvieron archivos logs por medio de CodeCarbon y Prometheus que permiten visualizar la potencia energética y el consumo energético acumulado, en la figura \ref{fig:energy_consumption} se muestra el consumo energético acumulado del experimento Gemma~3 12B con QLoRA (NF4), mientras que en la figura \ref{fig:power_consumption} se muestra la potencia energética del mismo experimento.}
+
+{Al final de cada experimento, con ayuda del archivo \texttt{.log} se obtiene el consumo energético total en kWh, la región donde se realizó, tiempo de ejecución, hardware utilizado, potencia energética promedio, entre otros. Con estos datos se procede a calcular el puntaje SCI para cada experimento. Utilizando la ecuación \ref{eq:sci} se obtiene el puntaje SCI para cada unidad funcional, como lo especifica la Green Software Foundation.}
+
+{La unidad funcional utilizada para este trabajo, es el entrenamiento de modelo de inteligencia artificial, el SCI total se hará de la suma de las emisiones por cada componente de software definido en el paso 1 de la metodología.}
+
+{Del archivo \texttt{.log} contamos con la energía consumida por dispositivo y total, lo cual es importante en las emisiones operacionales, que se obtienen con la ecuación \ref{eq:operational_emissions} utilizando el factor de emisión dependiendo la región donde se realizó el experimento. En la tabla \ref{tab:region_emissions} se muestran los factores de emisión de las regiones donde se realizaron los experimentos. La energía consumida es el término $E$ de la ecuación \ref{eq:operational_emissions} y el factor de emisión es el término $I$.}
+
+{Para obtener las emisiones incorporadas, se utiliza la ecuación \ref{eq:embodied_emissions} donde $TE$ son las emisiones del ciclo de vida del hardware, $TiR$ es la duración del proceso de entrenamiento, $EL$ es el tiempo esperado de vida útil de uso, $RR$ son los recursos asignados al experimento y $ToR$ son los recursos totales del hardware.}
+
+\begin{equation} \label{eq:sci}
+    SCI = (O+M) \text{ por R,}
+\end{equation}
+
+
+\begin{equation}
+    O = (E \times I)
+    \label{eq:operational_emissions}
+\end{equation}
+
+\begin{equation}
+    M = TE \times \frac{TiR}{El} \times \frac{RR}{ToR}
+    \label{eq:embodied_emissions}
+\end{equation}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Configuraciones de experimentos.}
+    \label{tab:region_emissions}
+    \begin{tabular}{lc}
+    \toprule
+    \textbf{Región} & \textbf{gCO$_2$e/kWh}\\
+    \midrule
+    México & 444 \\
+    SRVC (Virginia) & 267.6195 \\
+    MROW (Iowa) & 635.94 \\
+    AZNM (Arizona) & 336.0213 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \caption{Consumo energético acumulado del experimento Gemma~3 12B con QLoRA (NF4).}
+    \label{fig:energy_consumption}
+    \resizebox{\columnwidth}{!}{\input{figures/energy_consumption.pgf}}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \caption{Potencia energética del experimento Gemma~3 12B con QLoRA (NF4).}
+    \label{fig:power_consumption}
+    \resizebox{\columnwidth}{!}{\input{figures/power_consumption.pgf}}
+\end{figure}
+
+\section{Conclusiones}
+
+{\lipsum[1]}
+
+\section{Reconocimientos}
+
+{Los Autores agradecen a la Escuela Superior de Cómputo
+del Instituto Politécnico Nacional por el apoyo recibido y las
+facilidades otorgadas para el desarrollo del presente trabajo
+terminal.}
+
+\printbibliography[title={Referencias}]
 
 \end{document}
