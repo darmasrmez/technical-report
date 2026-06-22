@@ -70,9 +70,9 @@ El creciente despliegue de modelos grandes de lenguaje (LLM) ha intensificado la
 {Se adoptó la metodología SCI de la Green Software Foundation \cite{greensoftwarefoundation_sci2025}, que calcula las emisiones de un sistema de software como $SCI = ((E \times I) + M)$ por $R$, donde $E$ es la energía consumida en kWh, $I$ la intensidad de carbono de la región donde se realizó el experimento, $M$ las emisiones incorporadas del hardware y $R$ la unidad funcional. SCI se compone de 5 pasos, los cuales son:}
 
 \begin{enumerate}
-    \item Definir los límites de software, o que componentes del software se incluirán en el cálculo de las emisiones.
+    \item Definir los límites de software, o qué componentes del software se incluirán en el cálculo de las emisiones.
     \item Seleccionar las unidades funcionales que mejor describan la actividad de software.
-    \item Definir por cada componente del software, cual será el método de cuantificación.
+    \item Definir por cada componente del software, cuál será el método de cuantificación.
     \item Calcular el puntaje SCI por cada componente del software y sumarlos para obtener el SCI total del sistema.
     \item Reportar los resultados de forma transparente y accesible.
 \end{enumerate}
@@ -161,6 +161,20 @@ El creciente despliegue de modelos grandes de lenguaje (LLM) ha intensificado la
     \end{tabular}
 \end{table}
 
+\begin{figure}[htbp]
+    \centering
+    \caption{Consumo energético acumulado del experimento Gemma~3 12B con QLoRA (NF4).}
+    \label{fig:energy_consumption}
+    \resizebox{\columnwidth}{!}{\input{figures/energy_consumption.pgf}}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \caption{Potencia energética del experimento Gemma~3 12B con QLoRA (NF4).}
+    \label{fig:power_consumption}
+    \resizebox{\columnwidth}{!}{\input{figures/power_consumption.pgf}}
+\end{figure}
+
 % \section{Desarrollo}
 
 % El \textit{fine-tuning} se ejecutó mediante un pipeline modular de cinco fases secuenciales: carga y formateo del conjunto de datos, cuantización del modelo base, añadidura de adaptadores LoRA \cite{Lora}, entrenamiento supervisado y almacenamiento de adaptadores. Toda la ejecución se orquestó en contenedores Podman sobre el servidor mediante un archivo \texttt{docker-compose.yml} que levanta los servicios de Prometheus, Grafana, Node Exporter, el AMD Device Metrics Exporter y un contenedor de PyTorch con ROCm. El conjunto de datos BioInstruct \cite{Tran2024Bioinstruct} se reformatea al esquema de chat esperado por cada tokenizador mediante \texttt{apply\_chat\_template()}; el caso de gpt-oss \cite{openai2025gptoss120bgptoss20bmodel} requiere adicionalmente la conversión al formato Harmony \cite{openai2025harmony} estandarizado con Unsloth \cite{unslothgptoss2025}.
@@ -172,7 +186,7 @@ El creciente despliegue de modelos grandes de lenguaje (LLM) ha intensificado la
 
 \section{Resultados}
 
-{En este trabajo se lograron realizar 12 experimentos de fine-tuning con los 7 modelos mencionados en la tabla \ref{tab:models}. A cada experimento se le aplicó una técnica de fine-tuning diferente, ya sea entrenar los parámetos más importante con LoRA, o también cuantizar el modelo para reducir su tamaño en la memoria VRAM, con QLoRA; de igual forma se aplicó el algoritmo de flash attention \cite{dao2022flashattentionfastmemoryefficientexact} a ciertos experimentos para mejorar el manejo de memoria de alto ancho de banda. En la tabla \ref{tab:configurations} se muestran las configuraciones utilizadas.}
+{En este trabajo se lograron realizar 12 experimentos de fine-tuning con los 7 modelos mencionados en la tabla \ref{tab:models}. A cada experimento se le aplicó una técnica de fine-tuning diferente, ya sea entrenar los parámetros más importantes con LoRA, o también cuantizar el modelo para reducir su tamaño en la memoria VRAM, con QLoRA; de igual forma se aplicó el algoritmo de flash attention \cite{dao2022flashattentionfastmemoryefficientexact} a ciertos experimentos para mejorar el manejo de memoria de alto ancho de banda. En la tabla \ref{tab:configurations} se muestran las configuraciones utilizadas.}
 
 
 \begin{table}[htbp]
@@ -199,34 +213,68 @@ El creciente despliegue de modelos grandes de lenguaje (LLM) ha intensificado la
     \end{tabular}
 \end{table}
 
+{En la figura \ref{fig:power_consumption:models} se muestra la potencia energética de cada experimento, la potencia energética marca cuánta energía se está consumiendo en el momento de ejecución, la potencia es una variable que afectará al consumo energético total, es importante notar que en 10 de los 12 experimentos, la potencia de CPU y RAM es constante, lo que indica que el estado de esos recursos durante el entrenamiento es inactivo, solo los modelos Gemma~3 12B QLoRA (int8) y Llama 8B LoRA presentan una potencia energética alta con valores mayores a 160 W, indicando que la CPU estuvo más involucrada en la ejecución del entrenamiento.}
 
 \begin{figure}[htbp]
     \centering
-    \caption{Consumo energético acumulado del experimento Gemma~3 12B con QLoRA (NF4).}
-    \label{fig:energy_consumption}
-    \resizebox{\columnwidth}{!}{\input{figures/energy_consumption.pgf}}
+    \includegraphics[width=\columnwidth]{figures/all_power_consumption.png}
+    \caption{Potencia energética de cada experimento.}\label{fig:power_consumption:models}
 \end{figure}
+
+
+{Otro valor que afectará el consumo energético total es el tiempo de ejecución, en la figura \ref{fig:duration:models} se muestra el tiempo de ejecución de cada experimento, de esta figura es importante mencionar que los modelos con una configuración QLoRA tienen un tiempo de ejecución mayor, con una media de 182 minutos, mientras que los modelos que usan LoRA su media es de 107 minutos, marcando una diferencia de 75 minutos, solo los modelos Mistral 7B QLoRA (NF4) y gpt-oss QLoRA (NF4) presentan un tiempo de ejecución menor o igual a 70 minutos. Para obtener el consumo energético total en kWh se utiliza la ecuación \ref{eq:energy_consumption} donde el tiempo de ejecución es el término $T$ y la potencia energética es el término $P$.}
+
+\begin{equation}
+    \text{Energía consumida }kWh = \frac{P_(W) \times T_(h)}{1000}
+    \label{eq:energy_consumption}
+\end{equation}
 
 \begin{figure}[htbp]
     \centering
-    \caption{Potencia energética del experimento Gemma~3 12B con QLoRA (NF4).}
-    \label{fig:power_consumption}
-    \resizebox{\columnwidth}{!}{\input{figures/power_consumption.pgf}}
+    \includegraphics[width=\columnwidth]{figures/all_duration.png}
+    \caption{Tiempo de ejecución de cada experimento.}\label{fig:duration:models}
 \end{figure}
+
+
+{En la figura \ref{fig:energy_consumption:models} se muestra el consumo energético de cada experimento, donde se puede observar que los modelos con una configuración QLoRA tienen un consumo energético mayor, siendo el modelo Gemma~3 12B QLoRA (int8) el que mayor consumo energético tiene con un valor de 1.43 kWh, mientras que el modelo gpt-oss QLoRA (NF4) tiene el menor consumo energético con un valor de 0.28 kWh. La alta potencia energética de Gemma y su extensa duración dieron como consecuencia un consumo energético alto.}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/all_energy_consumption.png}
+    \caption{Consumo energético de cada experimento.}\label{fig:energy_consumption:models}
+\end{figure}
+
+
+{Para analizar el impacto ambiental de cada experimento, en la figura \ref{fig:sci:models} se muestra el puntaje SCI de cada experimento, donde se puede observar que los modelos con una configuración QLoRA tienen un puntaje SCI mayor, ocupando los primeros 5 lugares de experimentos que liberaron más gCO$_2$e, siendo el modelo Gemma~3 12B QLoRA (int8) el que mayor puntaje SCI tiene con un valor de 406.1 gCO$_2$e/R, mientras que el modelo Mistral~3 7B QLoRA (NF4) tiene el menor puntaje SCI con un valor de 99.86 gCO$_2$e/R. Es importante mencionar que SCI tiene más variables en consideración para medir el impacto ambiental, el factor de emisión es uno de ellos, 3 de los experimentos QLoRA se realizaron en la región de Iowa, que presenta el factor de emisión más alto de las regiones donde se realizaron los experimentos.}
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/all_sci_score.png}
+    \caption{Puntaje SCI de cada experimento.}\label{fig:sci:models}
+\end{figure}
+
+{Por último, en la figura \ref{fig:bertscore:models} se analizan los resultados de BERTscore F1 contra el puntaje SCI de cada experimento, con el fin de comparar la calidad del modelo después de ser entrenado y el impacto ambiental de cada experimento. De igual forma se compara el tamaño del modelo en parámetros para analizar si el tamaño del modelo afecta la calidad y el impacto ambiental.}
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/bertscore_sci_score.png}
+    \caption{BERTscore contra SCI.}\label{fig:bertscore:models}
+\end{figure}
+
 
 
 \section{Conclusiones}
 
-Los resultados confirman que el tamaño del modelo no correlaciona con la calidad de generación ni con la eficiencia ambiental. LLaMA~3.1 8B con LoRA logró el mejor equilibrio rendimiento-costo ($F1 = 0.763$, $SCI = 140.59$~gCO$_2$eq/R), mientras que BioMistral 7B \cite{mistral7b} obtuvo el menor puntaje SCI del estudio (102.59~gCO$_2$eq/R) con un F1 de 0.684, posicionándose como la configuración más sostenible. En contraste, Gemma~3 12B \cite{gemma3report2025} con cuantización alcanzó el SCI más elevado (hasta 415.73~gCO$_2$eq/R) sin mejora proporcional en calidad, y Ministral~3 14B \cite{ministral3} presentó degradación por la combinación de LoRA y cuantización aplicada sobre un modelo multimodal evaluado en tareas exclusivamente textuales.
+{Los resultados confirman que el tamaño del modelo no correlaciona con la calidad de generación ni con la eficiencia ambiental. LLaMA~3.1 8B con LoRA logró el mejor equilibrio rendimiento-costo ($F1 = 0.763$, $SCI = 137.16$~gCO$_2$eq/R), mientras que Mistral 7B \cite{mistral7b} obtuvo el menor puntaje SCI del estudio (99.86~gCO$_2$eq/R) con un F1 de 0.684, posicionándose como la configuración más sostenible. En contraste, Gemma~3 12B \cite{gemma3report2025} con cuantización alcanzó el SCI más elevado (hasta 406.1~gCO$_2$eq/R) sin mejora proporcional en calidad, y Ministral~3 14B \cite{ministral3} presentó degradación por la combinación de LoRA y cuantización aplicada sobre un modelo multimodal evaluado en tareas exclusivamente textuales.}
 
-Estos hallazgos refuerzan que la selección de la estrategia de fine-tuning \cite{ibmfinetuning} y la arquitectura base tienen un impacto más determinante sobre el SCI que el número de parámetros. Los modelos densos de menor escala (7B--8B) ajustados con LoRA y cargados sin fusionar el adaptador superan a alternativas de mayor tamaño tanto en calidad textual como en eficiencia ambiental, alineándose con la crítica reciente al paradigma \textit{bigger-is-better} en IA \cite{10.1145/3715275.3732006} y subrayando la viabilidad de configuraciones sostenibles bajo las condiciones energéticas mexicanas.
+{Estos hallazgos refuerzan que la selección de la estrategia de fine-tuning \cite{ibmfinetuning} y la arquitectura base tienen un impacto más determinante sobre el SCI que el número de parámetros. Los modelos densos de menor escala (7B--8B) ajustados con LoRA y cargados sin fusionar el adaptador superan a alternativas de mayor tamaño tanto en calidad textual como en eficiencia ambiental, alineándose con la crítica reciente al paradigma \textit{bigger-is-better} en IA \cite{10.1145/3715275.3732006}.}
 
 \section{Reconocimientos}
 
-{Los Autores agradecen a la Escuela Superior de Cómputo
-del Instituto Politécnico Nacional por el apoyo recibido y las
-facilidades otorgadas para el desarrollo del presente trabajo
-terminal.}
+{Los autores agradecen a la Escuela Superior de Cómputo
+del Instituto Politécnico Nacional por el apoyo recibido y las facilidades otorgadas para el desarrollo del presente trabajo terminal.}
 
 \printbibliography[title={Referencias}]
 
