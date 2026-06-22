@@ -51,28 +51,39 @@ Tel. 57-29-6000 ext. 52000 y 52021. E-mail: \texttt{darmasr2100@alumno.ipn.mx}, 
 
 \maketitle
 \begin{abstract}
-El creciente despliegue de modelos grandes de lenguaje (LLM) ha intensificado la demanda energética de los centros de datos, cuyo consumo global representó el dos por ciento de la electricidad mundial en 2022. El fine-tuning, técnica que adapta modelos preentrenados a dominios específicos, se posiciona como alternativa eficiente frente al entrenamiento desde cero; sin embargo, su huella de carbono permanece insuficientemente cuantificada, particularmente en regiones como México. Este trabajo evalúa la intensidad de carbono del fine-tuning de LLMs de código abierto de 7 a 14 mil millones de parámetros, pertenecientes a las familias LLaMA~3, Qwen~3, Gemma~3, BioMistral y Ministral, sobre el conjunto biomédico BioInstruct. Se aplicó la metodología Software Carbon Intensity (SCI) de la Green Software Foundation, midiendo el consumo de GPU, CPU y RAM mediante CodeCarbon, Zeus y Prometheus, en un servidor on-premise con GPUs AMD Instinct MI210 y en la nube con GPUs NVIDIA A100 y L4. La calidad se evaluó con BERTScore usando BioBERT. Los resultados indican que el tamaño del modelo no correlaciona linealmente con la calidad de salida; LLaMA~3 8B con LoRA obtuvo la mejor relación rendimiento-costo ambiental, mientras que BioMistral 7B presentó la configuración más sostenible. Se empleó el factor de emisión del sistema eléctrico nacional mexicano (0.444~tCO$_2$e/MWh) para contextualizar el impacto en la región.
+El creciente despliegue de modelos grandes de lenguaje (LLM) ha intensificado la demanda energética de los centros de datos, cuyo consumo global representó el dos por ciento de la electricidad mundial en 2022. El fine-tuning, técnica que adapta modelos preentrenados a dominios específicos, se posiciona como alternativa eficiente frente al entrenamiento desde cero; sin embargo, su huella de carbono permanece insuficientemente cuantificada. Este trabajo evalúa la intensidad de carbono del fine-tuning de LLMs de código abierto de 7 a 20 mil millones de parámetros, pertenecientes a las familias LLaMA~3, Qwen~3, Gemma~3, Mistral y gpt-oss, sobre el conjunto de datos BioInstruct. Se utiliza la metodología Software Carbon Intensity (SCI) para evaluar su huella de carbono considerando el consumo de GPU, CPU y RAM mediante CodeCarbon, Zeus y Prometheus, en un servidor on-premise con GPUs AMD Instinct MI210 y en la nube con GPUs NVIDIA A100. Para evaluar su desempeño en responder, se usó BERTScore usando BioBERT. Los resultados indican que el tamaño del modelo no se correlaciona linealmente con la calidad de salida; LLaMA~3 8B con LoRA obtuvo la mejor relación rendimiento-impacto ambiental.
 \end{abstract}
 \vspace{1em}
-\end{@twocolumnfalse}]
+\end{@twocolumnfalse}
+]
 
 \section{Introducción}
 
-Los modelos grandes de lenguaje (LLM) han transformado el procesamiento del lenguaje natural, pero su operación demanda cantidades significativas de energía: en 2022 los centros de datos consumieron 460~TWh a nivel global, y se estima que una consulta a ChatGPT produce 4.32~g de CO$_2$, mientras que el entrenamiento completo de un LLM puede emitir hasta 550 toneladas de CO$_2$ equivalente.
+\noindent{Los modelos grandes de lenguaje (LLM), basados en la arquitectura transformer y sus mecanismos de auto-atención \cite{googleTransformers}, han transformado el procesamiento del lenguaje natural. Sin embargo, su operación demanda cantidades significativas de energía: en 2022 los centros de datos consumieron 460~TWh a nivel global, equivalente al dos por ciento de la demanda eléctrica mundial \cite{ieaelectricity2024}, y se estima que una consulta a ChatGPT produce 4.32~g de CO$_2$ \cite{xia2024understandingperformanceestimatingcost}, mientras que el entrenamiento completo de un LLM puede emitir hasta 550 toneladas de CO$_2$ equivalente \cite{dodge2022measuringcarbonintensityai}.}
 
-Ante este panorama, el fine-tuning surge como alternativa al reutilizar pesos de modelos preentrenados y adaptarlos mediante aprendizaje supervisado. Técnicas como PEFT y LoRA reducen drásticamente los parámetros entrenables al introducir matrices de bajo rango, disminuyendo memoria y tiempo de cómputo. No obstante, la cuantificación de su huella de carbono sigue siendo limitada, y prácticamente inexistente para el contexto energético mexicano.
+{Ante este panorama, el fine-tuning surge como alternativa al reutilizar pesos de modelos preentrenados y adaptarlos mediante aprendizaje supervisado \cite{ibmfinetuning}. Técnicas como LoRA reducen drásticamente los parámetros entrenables al introducir matrices de bajo rango, disminuyendo memoria y tiempo de cómputo \cite{Lora,PEFTHugging}. No obstante, la cuantificación de su huella de carbono sigue siendo limitada, y prácticamente inexistente para el contexto energético.}
 
-Por lo anterior, este estudio evalúa la huella de carbono del fine-tuning de LLMs de código abierto empleando la metodología Software Carbon Intensity (SCI) y el factor de emisión del sistema eléctrico nacional (FESEN), comparando arquitecturas densas y de mezcla de expertos, con el fin de proponer estrategias hacia una IA más sostenible.
+{Por lo anterior, este estudio evalúa la huella de carbono del fine-tuning de LLMs de código abierto de 7 a 20 mil millones de parámetros, empleando la metodología Software Carbon Intensity (SCI) \cite{greensoftwarefoundation_sci2025} comparando arquitecturas densas y mezcla de expertos, con el fin de proponer estrategias para el desarrollo de IA más sostenible.}
 
 \section{Metodología}
 
-{Se adoptó la metodología SCI de la Green Software Foundation \cite{greensoftwarefoundation_sci2025}, que calcula las emisiones de un sistema de software como $SCI = ((E \times I) + M)$ por $R$, donde $E$ es la energía consumida en MWh, $I$ la intensidad de carbono de la red eléctrica, $M$ las emisiones incorporadas del hardware y $R$ la unidad funcional, definida en este trabajo como un experimento completo de fine-tuning. Los componentes monitoreados fueron GPU, CPU y RAM, excluyendo refrigeración e infraestructura de red.}
+{Se adoptó la metodología SCI de la Green Software Foundation \cite{greensoftwarefoundation_sci2025}, que calcula las emisiones de un sistema de software como $SCI = ((E \times I) + M)$ por $R$, donde $E$ es la energía consumida en kWh, $I$ la intensidad de carbono de la región donde se realizó el experimento, $M$ las emisiones incorporadas del hardware y $R$ la unidad funcional. SCI se compone de 5 pasos, los cuales son:}
 
-{Los experimentos se ejecutaron en dos entornos: un servidor on-premise con AlmaLinux, dos GPUs AMD Instinct MI210, un CPU AMD EPYC 9374F y 384~GB de RAM orquestado con Podman; y estudios en Lightning~AI con GPUs NVIDIA A100 y L4. En ambos se realizó fine-tuning supervisado (SFT) con LoRA y QLoRA sobre modelos de las familias LLaMA~3, Qwen~3, Gemma~3, BioMistral y Ministral, utilizando el conjunto de datos biomédico BioInstruct.}
+\begin{enumerate}
+    \item Definir los límites de software, o que componentes del software se incluirán en el cálculo de las emisiones.
+    \item Seleccionar las unidades funcionales que mejor describan la actividad de software.
+    \item Definir por cada componente del software, cual será el método de cuantificación.
+    \item Calcular el puntaje SCI por cada componente del software y sumarlos para obtener el SCI total del sistema.
+    \item Reportar los resultados de forma transparente y accesible.
+\end{enumerate}
 
-{Para la medición energética se emplearon tres herramientas complementarias: CodeCarbon para la estimación agregada por experimento, Zeus para lecturas por fase en GPUs NVIDIA, y Prometheus con Grafana junto al AMD Device Metrics Exporter para la telemetría continua on-premise. Los contadores RAPL proporcionaron el consumo de CPU y RAM, mientras que AMD~SMI y NVML las lecturas de GPU. La calidad de los modelos ajustados se evaluó con BERTScore usando \texttt{dmis-lab/biobert-v1.1} con parámetros fijos de 300 muestras y 256 tokens máximos de generación.}
+{Para la presente investigación, los límites de software definidos son GPU, CPU y RAM, mientras que las unidades funcionales definidas son el entrenamiento de modelo de inteligencia artificial, el método de cuantificación será a través de telemetría para tener un cálculo de las emisiones operacionales.}
 
-{Finalmente, las emisiones operacionales se obtuvieron como $O = E \times I$, con $I$ igual al FESEN 2024 de 0.444~tCO$_2$e/MWh, y las emisiones incorporadas como $M = TE \times TS \times RS$, donde $TE$ son las emisiones del ciclo de vida del hardware, $TS$ la fracción temporal y $RS$ la fracción de recursos asignados. El puntaje SCI se calculó sumando ambos componentes por unidad funcional.}
+{Los experimentos se ejecutaron en dos entornos: un servidor con dos GPUs AMD Instinct MI210, un CPU AMD EPYC y 384~GB de RAM; y haciendo uso de cómputo en la nube con Lightning~AI \cite{lightning2023} para utilizar GPUs NVIDIA A100 de 40 y 80 GB de VRAM. En ambos se realizó fine-tuning supervisado (SFT) \cite{trlsft2024} con LoRA \cite{Lora} y QLoRA \cite{qlora2023}, en la tabla \ref{tab:models} se muestran los modelos utilizados.}
+
+{Para medir el consumo energético se emplearon las herramientas de CodeCarbon \cite{benoitcourty202411171501} para monitorear el consumo energético de los límites de software, Zeus \cite{measuringgpuzeus} para lecturas por fase en las GPUs, y Prometheus con Grafana junto al AMD Device Metrics Exporter para la telemetría. Las herramientas hacen uso de los contadores de energía embebidos como RAPL, AMD~SMI y NVML. La calidad de los modelos ajustados se evaluó con BERTScore \cite{bertscore} usando \texttt{dmis-lab/biobert-v1.1} con parámetros fijos de 300 muestras y 256 tokens máximos de generación.}
+
+% {Finalmente, las emisiones operacionales se obtuvieron como $O = E \times I$, con $I$ igual al FESEN 2024 de 0.444~tCO$_2$e/MWh, y las emisiones incorporadas como $M = TE \times TS \times RS$, donde $TE$ son las emisiones del ciclo de vida del hardware, $TS$ la fracción temporal y $RS$ la fracción de recursos asignados. El puntaje SCI se calculó sumando ambos componentes por unidad funcional.}
 
 \begin{table}[htbp]
     \centering
@@ -93,10 +104,75 @@ Por lo anterior, este estudio evalúa la huella de carbono del fine-tuning de LL
     \end{tabular}
 \end{table}
 
+{De cada experimento se obtuvieron archivos \texttt{logs} por medio de CodeCarbon y Prometheus que posteriormente permiten visualizar la potencia energética y el consumo energético acumulado, como se ejemplifica en la figura \ref{fig:energy_consumption} mostrando el consumo energético acumulado del experimento Gemma~3 12B utilizando la configuración QLoRA (NF4), mientras que en la figura \ref{fig:power_consumption} se observa la potencia energética del mismo experimento.}
+
+{Los archivos \texttt{logs} también contienen información como la región donde se realizó el experimento, tiempo de ejecución, hardware utilizado, potencia energética promedio, entre otros. Con estos datos se procede a calcular el puntaje SCI para cada experimento. Utilizando la ecuación \ref{eq:sci} se obtiene el puntaje SCI para cada unidad funcional.}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Emisiones incorporadas de los dispositivos de hardware.}
+    \label{tab:embodied_emissions}
+    \begin{tabularx}{\columnwidth}{Xcc}
+        \toprule
+        \textbf{Dispositivo} & \textbf{$TE$(kgCO$_2$e)} & \textbf{$EL$ Vida útil (años)} \\
+        \midrule
+        NVIDIA A100-SXM4-40GB & 150 & 6 \\
+        AMD EPYC 7J13 64-Core & 200 & 6 \\
+        AMD EPYC 9374F 32-Core & 250 & 4 \\
+        AMD Instinct MI210 & 210 & 4.5 \\
+        Intel Xeon 2.20GHz 18-Core & 200 & 5 \\
+        NVIDIA A100-SXM4-80GB & 180 & 6 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+{Con la energía consumida por dispositivo y total, se obtienen las emisiones operacionales, utilizando la ecuación \ref{eq:operational_emissions} donde la energía consumida es el término $E$ y el factor de emisión es el término $I$. En la tabla \ref{tab:region_emissions} se muestran los factores de emisión de las regiones donde se realizaron los experimentos.}
+
+{Para obtener las emisiones incorporadas, se utiliza la ecuación \ref{eq:embodied_emissions} donde $TE$ son las emisiones del ciclo de vida del hardware, los valores se observan en la tabla \ref{tab:embodied_emissions} que son datos de aproximación por el proyecto Boavizta \cite{boaviztadatavizta}, $TiR$ es la duración del proceso de entrenamiento, $EL$ es el tiempo esperado de vida útil de uso, que también se encuentra en la tabla \ref{tab:embodied_emissions}, $RR$ son los recursos asignados al experimento y $ToR$ son los recursos totales del hardware.}
+
+\begin{equation} \label{eq:sci}
+    SCI = (O+M) \text{ por R,}
+\end{equation}
+
+
+\begin{equation}
+    O = (E \times I)
+    \label{eq:operational_emissions}
+\end{equation}
+
+\begin{equation}
+    M = TE \times \frac{TiR}{El} \times \frac{RR}{ToR}
+    \label{eq:embodied_emissions}
+\end{equation}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Factores de emisión.}
+    \label{tab:region_emissions}
+    \begin{tabular}{lc}
+    \toprule
+    \textbf{Región} & \textbf{gCO$_2$e/kWh}\\
+    \midrule
+    México & 444 \\
+    SRVC (Virginia) & 267.6195 \\
+    MROW (Iowa) & 635.94 \\
+    AZNM (Arizona) & 336.0213 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+% \section{Desarrollo}
+
+% El \textit{fine-tuning} se ejecutó mediante un pipeline modular de cinco fases secuenciales: carga y formateo del conjunto de datos, cuantización del modelo base, añadidura de adaptadores LoRA \cite{Lora}, entrenamiento supervisado y almacenamiento de adaptadores. Toda la ejecución se orquestó en contenedores Podman sobre el servidor mediante un archivo \texttt{docker-compose.yml} que levanta los servicios de Prometheus, Grafana, Node Exporter, el AMD Device Metrics Exporter y un contenedor de PyTorch con ROCm. El conjunto de datos BioInstruct \cite{Tran2024Bioinstruct} se reformatea al esquema de chat esperado por cada tokenizador mediante \texttt{apply\_chat\_template()}; el caso de gpt-oss \cite{openai2025gptoss120bgptoss20bmodel} requiere adicionalmente la conversión al formato Harmony \cite{openai2025harmony} estandarizado con Unsloth \cite{unslothgptoss2025}.
+
+% Las familias evaluadas fueron Mistral 7B \cite{mistral7b}, Ministral~3 14B \cite{ministral3}, gpt-oss 20B, Qwen~3 8B y 14B \cite{yang2025qwen3technicalreport}, LLaMA~3 8B y Gemma~3 12B \cite{gemma3report2025} quienes comparten una base Transformers, salvo gpt-oss que sigue un enfoque de mezcla de expertos. Los pesos se cargan en formato NormalFloat de 4 bits (NF4) con doble cuantización. Posteriormente, con el uso de PEFT \cite{PEFTHugging} se congela los pesos base, convierte las capas de normalización a FP32 y habilita el punto de control de gradientes; los adaptadores LoRA se entrenan con la clase \texttt{SFTTrainer} de TRL \cite{trlsft2024}, y al concluir sólo se mantienen los adaptadores y el tokenizador, lo que genera puntos de control.
+
+% Como contingencia frente a la saturación temporal del servidor por procesos concurrentes externos, parte de los experimentos se migraron a Lightning~AI \cite{lightning2023} con una GPU NVIDIA A100 de 80~GB, lo que permitió paralelizar la ejecución y concluir la fase experimental dentro de los tiempos planeados sin desviarse de la configuración descrita.
+
 
 \section{Resultados}
 
-{En este trabajo se lograron realizar 12 experimentos de fine-tuning con los 7 modelos propuestos en la tabla \ref{tab:models}, utilizando el conjunto de datos biomédico BioInstruct \cite{Tran2024Bioinstruct}. A cada experimento se le aplicó una técnica de fine-tuning diferente, ya sea entrenar los parámetos más importante con LoRA, o también cuantizar el modelo para reducir su tamaño en la memoria VRAM, con QLoRA; de igual forma se aplicó el algoritmo de flash attention \cite{dao2022flashattentionfastmemoryefficientexact} para mejorar la eficiencia de la memoria de alto ancho de banda. En la tabla \ref{tab:configurations} se muestran las configuraciones utilizadas.}
+{En este trabajo se lograron realizar 12 experimentos de fine-tuning con los 7 modelos mencionados en la tabla \ref{tab:models}. A cada experimento se le aplicó una técnica de fine-tuning diferente, ya sea entrenar los parámetos más importante con LoRA, o también cuantizar el modelo para reducir su tamaño en la memoria VRAM, con QLoRA; de igual forma se aplicó el algoritmo de flash attention \cite{dao2022flashattentionfastmemoryefficientexact} a ciertos experimentos para mejorar el manejo de memoria de alto ancho de banda. En la tabla \ref{tab:configurations} se muestran las configuraciones utilizadas.}
 
 
 \begin{table}[htbp]
@@ -123,46 +199,6 @@ Por lo anterior, este estudio evalúa la huella de carbono del fine-tuning de LL
     \end{tabular}
 \end{table}
 
-{De cada experimento se obtuvieron archivos logs por medio de CodeCarbon y Prometheus que permiten visualizar la potencia energética y el consumo energético acumulado, en la figura \ref{fig:energy_consumption} se muestra el consumo energético acumulado del experimento Gemma~3 12B con QLoRA (NF4), mientras que en la figura \ref{fig:power_consumption} se muestra la potencia energética del mismo experimento.}
-
-{Al final de cada experimento, con ayuda del archivo \texttt{.log} se obtiene el consumo energético total en kWh, la región donde se realizó, tiempo de ejecución, hardware utilizado, potencia energética promedio, entre otros. Con estos datos se procede a calcular el puntaje SCI para cada experimento. Utilizando la ecuación \ref{eq:sci} se obtiene el puntaje SCI para cada unidad funcional, como lo especifica la Green Software Foundation.}
-
-{La unidad funcional utilizada para este trabajo, es el entrenamiento de modelo de inteligencia artificial, el SCI total se hará de la suma de las emisiones por cada componente de software definido en el paso 1 de la metodología.}
-
-{Del archivo \texttt{.log} contamos con la energía consumida por dispositivo y total, lo cual es importante en las emisiones operacionales, que se obtienen con la ecuación \ref{eq:operational_emissions} utilizando el factor de emisión dependiendo la región donde se realizó el experimento. En la tabla \ref{tab:region_emissions} se muestran los factores de emisión de las regiones donde se realizaron los experimentos. La energía consumida es el término $E$ de la ecuación \ref{eq:operational_emissions} y el factor de emisión es el término $I$.}
-
-{Para obtener las emisiones incorporadas, se utiliza la ecuación \ref{eq:embodied_emissions} donde $TE$ son las emisiones del ciclo de vida del hardware, $TiR$ es la duración del proceso de entrenamiento, $EL$ es el tiempo esperado de vida útil de uso, $RR$ son los recursos asignados al experimento y $ToR$ son los recursos totales del hardware.}
-
-\begin{equation} \label{eq:sci}
-    SCI = (O+M) \text{ por R,}
-\end{equation}
-
-
-\begin{equation}
-    O = (E \times I)
-    \label{eq:operational_emissions}
-\end{equation}
-
-\begin{equation}
-    M = TE \times \frac{TiR}{El} \times \frac{RR}{ToR}
-    \label{eq:embodied_emissions}
-\end{equation}
-
-\begin{table}[htbp]
-    \centering
-    \caption{Configuraciones de experimentos.}
-    \label{tab:region_emissions}
-    \begin{tabular}{lc}
-    \toprule
-    \textbf{Región} & \textbf{gCO$_2$e/kWh}\\
-    \midrule
-    México & 444 \\
-    SRVC (Virginia) & 267.6195 \\
-    MROW (Iowa) & 635.94 \\
-    AZNM (Arizona) & 336.0213 \\
-    \bottomrule
-    \end{tabular}
-\end{table}
 
 \begin{figure}[htbp]
     \centering
@@ -178,9 +214,12 @@ Por lo anterior, este estudio evalúa la huella de carbono del fine-tuning de LL
     \resizebox{\columnwidth}{!}{\input{figures/power_consumption.pgf}}
 \end{figure}
 
+
 \section{Conclusiones}
 
-{\lipsum[1]}
+Los resultados confirman que el tamaño del modelo no correlaciona con la calidad de generación ni con la eficiencia ambiental. LLaMA~3.1 8B con LoRA logró el mejor equilibrio rendimiento-costo ($F1 = 0.763$, $SCI = 140.59$~gCO$_2$eq/R), mientras que BioMistral 7B \cite{mistral7b} obtuvo el menor puntaje SCI del estudio (102.59~gCO$_2$eq/R) con un F1 de 0.684, posicionándose como la configuración más sostenible. En contraste, Gemma~3 12B \cite{gemma3report2025} con cuantización alcanzó el SCI más elevado (hasta 415.73~gCO$_2$eq/R) sin mejora proporcional en calidad, y Ministral~3 14B \cite{ministral3} presentó degradación por la combinación de LoRA y cuantización aplicada sobre un modelo multimodal evaluado en tareas exclusivamente textuales.
+
+Estos hallazgos refuerzan que la selección de la estrategia de fine-tuning \cite{ibmfinetuning} y la arquitectura base tienen un impacto más determinante sobre el SCI que el número de parámetros. Los modelos densos de menor escala (7B--8B) ajustados con LoRA y cargados sin fusionar el adaptador superan a alternativas de mayor tamaño tanto en calidad textual como en eficiencia ambiental, alineándose con la crítica reciente al paradigma \textit{bigger-is-better} en IA \cite{10.1145/3715275.3732006} y subrayando la viabilidad de configuraciones sostenibles bajo las condiciones energéticas mexicanas.
 
 \section{Reconocimientos}
 
